@@ -5,7 +5,7 @@ from pycocotools.coco import COCO
 from collections import Counter
 
 class Vocabulary(object) :
-    
+ 
     def __init__(self, vocab_threshold, vocab_file='./vocab.pkl',
                 start_word="<start>", end_word="<end>", unk_word="<unk>",
                 annotations_file = "C:/Users/PC/Desktop/coco/data/annotations/captions_train2017.json",
