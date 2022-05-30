@@ -10,14 +10,16 @@ def get_loader(transform,
                num_workers=0,
                cocoapi_loc="C:/Users/PC/Desktop/COCO"):
     
-    assert mode in ["train", "val", "test"], 
-    if vocab_from_file == False: 
-        assert mode == "train", "To generate vocab from captions file, must be in training mode (mode='train')."
+    assert mode in ["train", "val", "test"]
+   
 
     
     if mode == "train":
-        if vocab_from_file == True: 
+        if vocab_from_file == True:
             assert os.path.exists(vocab_file), "vocab_file does not exist. Change vocab_from_file to False to create vocab_file."
+        else:
+            assert mode == "train", "To generate vocab from captions file, must be in training mode (mode='train')."
+                
         img_folder = os.path.join(cocoapi_loc, "data/train2017/")
         annotations_file = os.path.join(cocoapi_loc, "data/annotations/captions_train2017.json")
     
@@ -48,7 +50,7 @@ def get_loader(transform,
                           img_folder=img_folder)
 
     if mode == "train":
-        .
+        
         indices = dataset.get_indices()
         initial_sampler = data.sampler.SubsetRandomSampler(indices=indices)
         data_loader = data.DataLoader(dataset=dataset, 
