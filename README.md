@@ -15,11 +15,13 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 
 
 
-## 관련 논문
+## References
 
 ### Image Captioning
 [Show and Tell : A Neural Image Caption Generator](https://arxiv.org/abs/1411.4555)
 
 [Show, Attend, and Tell : Neural Image Caption Generation with Visual Attention](https://arxiv.org/abs/1502.03044)
+
+[Implementation of Show and Tell](https://github.com/nalbert9/Image-Captioning)
 
 
