@@ -13,15 +13,21 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 ### 3. Model ( Image captioning part)
 ### 4. Train
 
-
-
-## References
+## Papers
 
 ### Image Captioning
 [Show and Tell : A Neural Image Caption Generator](https://arxiv.org/abs/1411.4555)
 
 [Show, Attend, and Tell : Neural Image Caption Generation with Visual Attention](https://arxiv.org/abs/1502.03044)
 
+
+## References
+
+### Image Captioning
 [Implementation of Show and Tell](https://github.com/nalbert9/Image-Captioning)
 
 
+### Story Generator
+[Generating Stories about Images](https://medium.com/@samim/generating-stories-about-images-d163ba41e4ed)
+
+[Microsoft AI Lab : Pix2Story](https://azure.microsoft.com/ko-kr/blog/pix2story-neural-storyteller-which-creates-machine-generated-story-in-several-literature-genre/)
