@@ -26,7 +26,7 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 ### Image Captioning
 [Implementation of Show and Tell](https://github.com/nalbert9/Image-Captioning)
 
-[CLIP](https://openai.com/blog/clip/)
+[CLIP: Connecting Text and Images](https://openai.com/blog/clip/)
 
 ### Story Generator
 [Generating Stories about Images](https://medium.com/@samim/generating-stories-about-images-d163ba41e4ed)
