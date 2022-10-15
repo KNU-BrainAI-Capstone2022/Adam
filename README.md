@@ -26,6 +26,7 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 ### Image Captioning
 [Implementation of Show and Tell](https://github.com/nalbert9/Image-Captioning)
 
+[CLIP](https://openai.com/blog/clip/)
 
 ### Story Generator
 [Generating Stories about Images](https://medium.com/@samim/generating-stories-about-images-d163ba41e4ed)
@@ -33,4 +34,6 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 [Microsoft AI Lab : Pix2Story](https://azure.microsoft.com/ko-kr/blog/pix2story-neural-storyteller-which-creates-machine-generated-story-in-several-literature-genre/)
 
 ### Image-to-Story, Metrics
+[딥인코더-디코더 기반의 인공지능 포토 스토리텔러 ](https://koreascience.kr/article/CFKO201924664108409.pdf)
+
 [Every picture tells a story: Image-grounded controllable stylistic story generation](https://arxiv.org/abs/2209.01638)
