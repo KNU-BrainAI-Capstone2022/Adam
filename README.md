@@ -31,3 +31,6 @@ Img2Story는 이미지를 입력으로 받아 그에 어울리는 스토리를 �
 [Generating Stories about Images](https://medium.com/@samim/generating-stories-about-images-d163ba41e4ed)
 
 [Microsoft AI Lab : Pix2Story](https://azure.microsoft.com/ko-kr/blog/pix2story-neural-storyteller-which-creates-machine-generated-story-in-several-literature-genre/)
+
+### Image-to-Story, Metrics
+[Every picture tells a story: Image-grounded controllable stylistic story generation](https://arxiv.org/abs/2209.01638)
