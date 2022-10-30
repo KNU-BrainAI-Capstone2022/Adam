@@ -6,6 +6,18 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+try:
+    from .KoBertTokenizer_MJ import KoBertTokenizer ## MJei
+except:
+    from KoBertTokenizer_MJ import KoBertTokenizer ## MJei
+    
+ko_tokenizer = KoBertTokenizer.from_pretrained('monologg/kobert')
+
+
+from transformers import BertModel
+kobert_model = BertModel.from_pretrained('skt/kobert-base-v1')
+
+from kobert_transformers import get_kobert_model
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -66,11 +78,11 @@ class AttentionPool2d(nn.Module):
         self.num_heads = num_heads
 
     def forward(self, x):
-        x = x.flatten(start_dim=2).permute(2, 0, 1)  # NCHW -> (HW)NC
+        x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[3]).permute(2, 0, 1)  # NCHW -> (HW)NC
         x = torch.cat([x.mean(dim=0, keepdim=True), x], dim=0)  # (HW+1)NC
         x = x + self.positional_embedding[:, None, :].to(x.dtype)  # (HW+1)NC
         x, _ = F.multi_head_attention_forward(
-            query=x[:1], key=x, value=x,
+            query=x, key=x, value=x,
             embed_dim_to_check=x.shape[-1],
             num_heads=self.num_heads,
             q_proj_weight=self.q_proj.weight,
@@ -88,7 +100,8 @@ class AttentionPool2d(nn.Module):
             training=self.training,
             need_weights=False
         )
-        return x.squeeze(0)
+
+        return x[0]
 
 
 class ModifiedResNet(nn.Module):
@@ -253,11 +266,19 @@ class CLIP(nn.Module):
                  vocab_size: int,
                  transformer_width: int,
                  transformer_heads: int,
-                 transformer_layers: int
+                 transformer_layers: int,
+                 
+                 
                  ):
         super().__init__()
 
         self.context_length = context_length
+        self.ko_tokenizer = ko_tokenizer ## 추가
+        
+        
+        
+#         self.fc=nn.Linear(768,512)
+
 
         if isinstance(vision_layers, (tuple, list)):
             vision_heads = vision_width * 32 // 64
@@ -285,6 +306,11 @@ class CLIP(nn.Module):
             heads=transformer_heads,
             attn_mask=self.build_attention_mask()
         )
+        
+
+        self.kor_transformer = get_kobert_model() ## 확정
+
+        
 
         self.vocab_size = vocab_size
         self.token_embedding = nn.Embedding(vocab_size, transformer_width)
@@ -340,21 +366,41 @@ class CLIP(nn.Module):
     def encode_image(self, image):
         return self.visual(image.type(self.dtype))
 
+#     def encode_text(self, text):
+#         x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+
+#         x = x + self.positional_embedding.type(self.dtype)
+#         x = x.permute(1, 0, 2)  # NLD -> LND
+#         x = self.transformer(x)
+#         x = x.permute(1, 0, 2)  # LND -> NLD
+#         x = self.ln_final(x).type(self.dtype)
+
+#         # x.shape = [batch_size, n_ctx, transformer.width]
+#         # take features from the eot embedding (eot_token is the highest number in each sequence)
+#         x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+
+#         return x
+
+#     def encode_text(self, text):
+#         x=self.ko_tokenizer.batch_encode_plus([text])
+#         out = kobert_model(input_ids = torch.tensor(x['input_ids']),
+#               attention_mask = torch.tensor(x['attention_mask']))
+
+#         return out.pooler_output
+
+
     def encode_text(self, text):
-        x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+        inputs = self.ko_tokenizer.batch_encode_plus(text)
+        x=kobert_model(input_ids = torch.tensor(inputs['input_ids']),
+                     attention_mask = torch.tensor(inputs['attention_mask'])).pooler_output
+        
+        x= self.nn.Linear(768,512)(x)
+        
 
-        x = x + self.positional_embedding.type(self.dtype)
-        x = x.permute(1, 0, 2)  # NLD -> LND
-        x = self.transformer(x)
-        x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.ln_final(x).type(self.dtype)
-
-        # x.shape = [batch_size, n_ctx, transformer.width]
-        # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
 
         return x
 
+    
     def forward(self, image, text):
         image_features = self.encode_image(image)
         text_features = self.encode_text(text)
@@ -397,6 +443,7 @@ def convert_weights(model: nn.Module):
 
 
 def build_model(state_dict: dict):
+    
     vit = "visual.proj" in state_dict
 
     if vit:
@@ -419,7 +466,7 @@ def build_model(state_dict: dict):
     vocab_size = state_dict["token_embedding.weight"].shape[0]
     transformer_width = state_dict["ln_final.weight"].shape[0]
     transformer_heads = transformer_width // 64
-    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith("transformer.resblocks")))
+    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
 
     model = CLIP(
         embed_dim,

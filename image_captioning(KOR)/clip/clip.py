@@ -10,8 +10,21 @@ from PIL import Image
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
 from tqdm import tqdm
 
-from .model import build_model
-from .simple_tokenizer import SimpleTokenizer as _Tokenizer
+# from model import build_model
+try:
+    from .model import build_model
+except:
+    from model import build_model
+# from .simple_tokenizer import SimpleTokenizer as _Tokenizer
+
+# from KoBertTokenizer_MJ import KoBertTokenizer
+try:
+    from .KoBertTokenizer_MJ import KoBertTokenizer ## MJei
+except:
+    from KoBertTokenizer_MJ import KoBertTokenizer ## MJei
+    
+import re ## MJei
+
 
 try:
     from torchvision.transforms import InterpolationMode
@@ -20,12 +33,19 @@ except ImportError:
     BICUBIC = Image.BICUBIC
 
 
+    
+    
 if packaging.version.parse(torch.__version__) < packaging.version.parse("1.7.1"):
     warnings.warn("PyTorch version 1.7.1 or higher is recommended")
 
+    
+    
 
 __all__ = ["available_models", "load", "tokenize"]
-_tokenizer = _Tokenizer()
+# _tokenizer = _Tokenizer()
+
+tokenizer = KoBertTokenizer.from_pretrained('monologg/kobert')
+
 
 _MODELS = {
     "RN50": "https://openaipublic.azureedge.net/clip/models/afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/RN50.pt",
@@ -67,7 +87,7 @@ def _download(url: str, root: str):
                 loop.update(len(buffer))
 
     if hashlib.sha256(open(download_target, "rb").read()).hexdigest() != expected_sha256:
-        raise RuntimeError("Model has been downloaded but the SHA256 checksum does not not match")
+        raise RuntimeError(f"Model has been downloaded but the SHA256 checksum does not not match")
 
     return download_target
 
@@ -93,29 +113,24 @@ def available_models() -> List[str]:
 
 def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu", jit: bool = False, download_root: str = None):
     """Load a CLIP model
-
     Parameters
     ----------
     name : str
         A model name listed by `clip.available_models()`, or the path to a model checkpoint containing the state_dict
-
     device : Union[str, torch.device]
         The device to put the loaded model
-
     jit : bool
         Whether to load the optimized JIT model or more hackable non-JIT model (default).
-
     download_root: str
         path to download the model files; by default, it uses "~/.cache/clip"
-
     Returns
     -------
     model : torch.nn.Module
         The CLIP model
-
     preprocess : Callable[[PIL.Image], torch.Tensor]
         A torchvision transform that converts a PIL image into a tensor that the returned model can take as its input
     """
+    
     if name in _MODELS:
         model_path = _download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
     elif os.path.isfile(name):
@@ -127,6 +142,7 @@ def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_a
         try:
             # loading JIT archive
             model = torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
+            # model = torch.jit.load(opened_file, map_location=device).eval()
             state_dict = None
         except RuntimeError:
             # loading saved state dict
@@ -138,7 +154,8 @@ def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_a
     if not jit:
         model = build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
-            model.float()
+            model.float() 
+
         return model, _transform(model.visual.input_resolution)
 
     # patch the device names
@@ -197,18 +214,14 @@ def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_a
 def tokenize(texts: Union[str, List[str]], context_length: int = 77, truncate: bool = False) -> Union[torch.IntTensor, torch.LongTensor]:
     """
     Returns the tokenized representation of given input string(s)
-
     Parameters
     ----------
     texts : Union[str, List[str]]
         An input string or a list of input strings to tokenize
-
     context_length : int
         The context length to use; all CLIP models use 77 as the context length
-
     truncate: bool
         Whether to truncate the text in case its encoding is longer than the context length
-
     Returns
     -------
     A two-dimensional tensor containing the resulting tokens, shape = [number of input strings, context_length].
@@ -217,9 +230,9 @@ def tokenize(texts: Union[str, List[str]], context_length: int = 77, truncate: b
     if isinstance(texts, str):
         texts = [texts]
 
-    sot_token = _tokenizer.encoder["<|startoftext|>"]
-    eot_token = _tokenizer.encoder["<|endoftext|>"]
-    all_tokens = [[sot_token] + _tokenizer.encode(text) + [eot_token] for text in texts]
+    sot_token = tokenizer.convert_tokens_to_ids(tokenizer.tokenize('[CLS]'))
+    eot_token = tokenizer.convert_tokens_to_ids(tokenizer.tokenize('[SEP]'))
+    all_tokens = [sot_token + tokenizer.convert_tokens_to_ids(tokenizer.tokenize(text)) + eot_token for text in texts]
     if packaging.version.parse(torch.__version__) < packaging.version.parse("1.8.0"):
         result = torch.zeros(len(all_tokens), context_length, dtype=torch.long)
     else:

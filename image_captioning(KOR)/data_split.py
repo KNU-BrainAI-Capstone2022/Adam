@@ -1,13 +1,15 @@
 #%%
 import pandas as pd
 import json
+import re
+import warnings ; warnings.filterwarnings('ignore')
 
 with open('C:/Users/PC/Desktop/4학년 2학기/project/coco_data/annotation/MSCOCO_train_val_Korean.json') as f:
     json_data = json.load(f)
 
 
 json_data=pd.DataFrame(json_data)
-json_data['file_path']=json_data['file_path'].apply(lambda x : 'C:/Users/PC/Desktop/4학년 2학기/project/coco_data/annotation/'+x)
+json_data['file_path']=json_data['file_path'].apply(lambda x : 'C:/Users/PC/Desktop/4학년 2학기/project/coco_data/image/'+x)
 
 def remove_text_len_100(input_list_text):
 
@@ -20,7 +22,7 @@ json_data['caption_ko'] = json_data['caption_ko'].apply(lambda x : remove_text_l
 json_train_data=json_data[json_data['file_path'].str.contains('train')] 
 json_train_data['caption_ko']=json_train_data['caption_ko'].apply(lambda x : '!@#'.join(x))
 
-
+#json_train_data = json_train_data.head(100)
 
 train_data=json_train_data['caption_ko'].str.split('!@#') 
 train_data=train_data.apply(lambda x : pd.Series(x)) 
@@ -30,8 +32,11 @@ json_train_data.drop('caption_ko',axis=1,inplace=True)
 train_data = json_train_data.merge(train_data, left_index=True, right_index=True, how='left') 
 train_data.reset_index(drop=True,inplace=True)
 
+train_data['caption_ko']=train_data['caption_ko'].apply(lambda x : re.sub('(?:\.)','',x).strip())
 
 print(train_data)
+#%%
+
 
 #%%
 json_valid_data = json_data[json_data['file_path'].str.contains('val')]
@@ -48,3 +53,5 @@ valid_data.reset_index(drop=True,inplace=True)
 
 print(valid_data)
 
+
+# %%

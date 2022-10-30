@@ -16,13 +16,20 @@ from tqdm import tqdm
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-model, preprocess = clip.load('ViT-B/32',device=device, jit=False)
+print(clip.available_models())
+
+model, preprocess = clip.load('ViT-B/32',device=device, jit=True)
+
+for param in model.state_dict():
+    print(param,model.state_dict()[param].size())
+
+print(model)
 
 class image_title_dataset(Dataset):
     def __init__(self, list_image_path,list_txt):
 
         self.image_path = list_image_path
-        self.title  = clip.tokenize(list_txt) #you can tokenize everything at once in here(slow at the beginning), or tokenize it in the training loop.
+        self.title  = clip.tokenize(list_txt)
         self.list_txt=list_txt ## 이거안하면 밑에 len에서 에러남
     
     def __len__(self):
@@ -36,12 +43,13 @@ class image_title_dataset(Dataset):
         title = self.title[idx]
         return image,title
 
-BATCH_SIZE=1
-EPOCH=5
 
 list_image_path=list(train_data['file_path'].values)
 list_txt = list(train_data['caption_ko'].values)
 
+print(len(list_image_path),len(list_txt))
+BATCH_SIZE=1
+ 
 dataset = image_title_dataset(list_image_path,list_txt)
 train_dataloader = DataLoader(dataset,batch_size = BATCH_SIZE)
 
@@ -54,3 +62,6 @@ if device == "cpu":
     model.float()
 else :
     clip.model.convert_weights(model) 
+
+
+# %%
