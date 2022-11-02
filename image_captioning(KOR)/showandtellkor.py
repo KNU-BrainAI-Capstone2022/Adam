@@ -891,6 +891,6 @@ def translation():
         result = decode['message']['result']['translatedText']
         print('3장의 image caption들의 기계 번역 결과 :\n'+result)
 
-    else:image.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pnimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.pngimage.png# %%
-
+    else:
+        print('Error Code:' + str(rescode))
 # %%
