@@ -417,6 +417,7 @@ class CLIP(nn.Module):
         # shape = [global_batch_size, global_batch_size]
         return logits_per_image, logits_per_text
 
+    
 
 def convert_weights(model: nn.Module):
     """Convert applicable model parameters to fp16"""
