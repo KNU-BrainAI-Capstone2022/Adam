@@ -22,7 +22,7 @@ ids = list(coco.anns.keys())
 import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
-%matplotlib inline
+#%matplotlib inline
 
 # pick a random image and obtain the corresponding URL
 ann_id = np.random.choice(ids)
@@ -857,7 +857,7 @@ def combination():
         caption = get_prediction(data_loader,encoder,decoder,vocab)
         combine_caption.append(caption)
     
-    new_caption = combine_caption[0]+'\n'+combine_caption[1]+'\n'+combine_caption[2]
+    new_caption = combine_caption[0]+',\n'+combine_caption[1]+',\n'+combine_caption[2]+','
     
     # print(combine_caption[0]+'\n'+combine_caption[1]+'\n'+combine_caption[2])
     
@@ -865,8 +865,7 @@ def combination():
     #print(new_caption)
     return new_caption
 
-def translation():
-    text = combination()
+def translation(text):
     inp = 'en'
     out = 'ko'
 
@@ -889,8 +888,26 @@ def translation():
         response_body = response.read()
         decode = json.loads(response_body.decode('utf-8'))
         result = decode['message']['result']['translatedText']
-        print('3장의 image caption들의 기계 번역 결과 :\n'+result)
+        #print('3장의 image caption들의 기계 번역 결과 :\n'+result)
 
     else:
         print('Error Code:' + str(rescode))
+    
+    return result
+
+# %% exampel 1 caption
+from transformers import pipeline, set_seed
+from showandtellkor import combination, translation
+
+generator = pipeline('text-generation', model='gpt2')
+
+set_seed(7)
+
+caption = get_prediction(data_loader,encoder,decoder,vocab).replace('.',',')
+
+captionone = generator(caption,max_length=300,num_return_sequences=5)[0]['generated_text']
+
+print(captionone)
+#%%
+print(translation(captionone))
 # %%
