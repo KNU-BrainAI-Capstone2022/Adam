@@ -1,3 +1,4 @@
+#%%
 import pickle
 import time
 import argparse
@@ -167,7 +168,9 @@ vocab_path = 'C:/Users/PC/Desktop/COCO/vocab/vocab.pkl'
 def main():
     with open(vocab_path,'rb') as f:
         vocab = pickle.load(f)
-    
+
+    checkpoint = 'C:/Users/PC/Desktop/4학년 2학기/project/Adam/image_captioning(KOR)/checkpoint/'
+
     if checkpoint is None:
         decoder = AttnDecoderRNN(attention_dim=512,
                                  embed_dim=512,
@@ -199,27 +202,27 @@ def main():
 
     # Image preprocessing, normalization for the pretrained resnet
     transform = transforms.Compose([
-        transforms.RandomCrop(args.crop_size),
+        transforms.RandomCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),
                              (0.229, 0.224, 0.225))])
 
     # Build data loader
-    train_loader = get_loader(args.image_dir, args.caption_path, vocab,
-                              transform, args.batch_size,
-                              shuffle=True, num_workers=args.num_workers)
+    train_loader = get_loader('C:/Users/PC/Desktop/COCO/data/train2017_resized', 'C:/Users/PC/Desktop/COCO/data/annotations/captions_train2014.json', vocab,
+                              transform, 32,
+                              shuffle=True, num_workers=1)
 
-    val_loader = get_loader(args.image_dir_val, args.caption_path_val, vocab,
-                            transform, args.batch_size,
-                            shuffle=True, num_workers=args.num_workers)
+    val_loader = get_loader('C:/Users/PC/Desktop/COCO/data/val2017_resized', 'C:/Users/PC/Desktop/COCO/data/annotations/captions_val2014.json' , vocab,
+                            transform, 32,
+                            shuffle=True, num_workers=1)
 
-    for epoch in range(args.start_epoch, args.epochs):
-        if args.epochs_since_improvement == 20:
+    for epoch in range(100):
+        if epochs_since_improvement == 20:
             break
-        if args.epochs_since_improvement > 0 and args.epochs_since_improvement % 8 == 0:
+        if epochs_since_improvement > 0 and epochs_since_improvement % 8 == 0:
             adjust_learning_rate(decoder_optimizer, 0.8)
-            if args.fine_tune_encoder:
+            if fine_tune_encoder:
                 adjust_learning_rate(encoder_optimizer, 0.8)
 
         train(train_loader=train_loader,
@@ -238,10 +241,15 @@ def main():
         is_best = recent_bleu4 > best_bleu4
         best_bleu4 = max(recent_bleu4, best_bleu4)
         if not is_best:
-            args.epochs_since_improvement +=1
-            print ("\nEpoch since last improvement: %d\n" %(args.epochs_since_improvement,))
+            epochs_since_improvement +=1
+            print ("\nEpoch since last improvement: %d\n" %(epochs_since_improvement,))
         else:
-            args.epochs_since_improvement = 0
+            epochs_since_improvement = 0
 
-        save_checkpoint(args.data_name, epoch, args.epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
+        save_checkpoint('./checkpoint/coco_5_cap_per_img_5_min_word_freq', epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer, decoder_optimizer,
                         recent_bleu4, is_best)
+
+
+# %%
+main()
+# %%
