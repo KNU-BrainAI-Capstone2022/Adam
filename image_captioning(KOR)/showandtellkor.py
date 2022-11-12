@@ -21,8 +21,10 @@ ids = list(coco.anns.keys())
 #%%
 import numpy as np
 import skimage.io as io
+import matplotlib
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-#%matplotlib inline
+%matplotlib inline
 
 # pick a random image and obtain the corresponding URL
 ann_id = np.random.choice(ids)
@@ -817,7 +819,12 @@ plt.title('transformed image')
 plt.show()
 
 #%%
+import torch
+print(torch.cuda.is_available())
+#%%
 checkpoint = torch.load(os.path.join('C:/Users/PC/Desktop/COCO/models', 'best-model.pkl'))
+#checkpoint = torch.load(os.path.join('checkpoint path','best-model.pkl'))
+
 
 
 embed_size = 256
@@ -895,19 +902,38 @@ def translation(text):
     
     return result
 
-# %% exampel 1 caption
-from transformers import pipeline, set_seed
-from showandtellkor import combination, translation
+# # %% exampel 1 caption
+# from transformers import pipeline, set_seed
+# from showandtellkor import combination, translation
 
-generator = pipeline('text-generation', model='gpt2')
+# generator = pipeline('text-generation', model='gpt2')
 
-set_seed(7)
+# set_seed(7)
 
-caption = get_prediction(data_loader,encoder,decoder,vocab).replace('.',',')
+# caption = get_prediction(data_loader,encoder,decoder,vocab).replace('.',',')
 
-captionone = generator(caption,max_length=300,num_return_sequences=5)[0]['generated_text']
+# captionone = generator(caption,max_length=300,num_return_sequences=5)[0]['generated_text']
 
-print(captionone)
-#%%
-print(translation(captionone))
+# print(captionone)
+# #%%
+# print(translation(captionone))
+# %%
+
+caption = translation(get_prediction(data_loader,encoder,decoder,vocab))
+
+print(caption)
+# %%
+from styletransfer import *
+
+style = 'formal'
+
+model_path = "C:/Users/PC/korean_smile_style_dataset/style/"
+#model_path = ''
+
+nlg_pipeline = pipeline('text2text-generation',model=model_path,tokenizer=model_name)
+
+# print(style, generate_text(nlg_pipeline, caption, style, num_return_sequences=1, max_length=512)[0])
+
+#최종 스타일 변환까지 한 caption
+final = generate_text(nlg_pipeline, caption, style, num_return_sequences=1, max_length=512)[0]
 # %%
